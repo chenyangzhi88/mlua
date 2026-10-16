@@ -20,11 +20,13 @@ use crate::table::Table;
 use crate::thread::Thread;
 use crate::traits::{FromLua, FromLuaMulti, IntoLua, IntoLuaMulti};
 use crate::types::{
-    AppDataRef, AppDataRefMut, ArcReentrantMutexGuard, Integer, LuaType, MaybeSend, Number, ReentrantMutex,
-    ReentrantMutexGuard, RegistryKey, VmState, XRc, XWeak,
+    AppDataRef, AppDataRefMut, ArcReentrantMutexGuard, Integer, LuaType, MaybeSend, Number,
+    ReentrantMutex, ReentrantMutexGuard, RegistryKey, VmState, XRc, XWeak,
 };
 use crate::userdata::{AnyUserData, UserData, UserDataProxy, UserDataRegistry, UserDataStorage};
-use crate::util::{assert_stack, check_stack, protect_lua_closure, push_string, rawset_field, StackGuard};
+use crate::util::{
+    assert_stack, check_stack, protect_lua_closure, push_string, rawset_field, StackGuard,
+};
 use crate::value::{Nil, Value};
 
 #[cfg(not(feature = "luau"))]
@@ -249,7 +251,12 @@ impl Lua {
             ffi::luaL_loadstring as _,
             ffi::luaL_openlibs as _,
         ]);
-        #[cfg(any(feature = "lua55", feature = "lua54", feature = "lua53", feature = "lua52"))]
+        #[cfg(any(
+            feature = "lua55",
+            feature = "lua54",
+            feature = "lua53",
+            feature = "lua52"
+        ))]
         {
             _symbols.push(ffi::lua_getglobal as _);
             _symbols.push(ffi::lua_setglobal as _);
@@ -415,7 +422,12 @@ impl Lua {
     #[cfg(not(feature = "luau"))]
     #[cfg_attr(docsrs, doc(cfg(not(feature = "luau"))))]
     pub fn preload_module(&self, modname: &str, func: Function) -> Result<()> {
-        #[cfg(any(feature = "lua55", feature = "lua54", feature = "lua53", feature = "lua52"))]
+        #[cfg(any(
+            feature = "lua55",
+            feature = "lua54",
+            feature = "lua53",
+            feature = "lua52"
+        ))]
         let preload = unsafe {
             self.exec_raw::<Option<Table>>((), |state| {
                 ffi::lua_getfield(state, ffi::LUA_REGISTRYINDEX, ffi::LUA_PRELOAD_TABLE);
@@ -424,7 +436,9 @@ impl Lua {
         #[cfg(any(feature = "lua51", feature = "luajit"))]
         let preload = unsafe {
             self.exec_raw::<Option<Table>>((), |state| {
-                if ffi::lua_getfield(state, ffi::LUA_REGISTRYINDEX, ffi::LUA_LOADED_TABLE) != ffi::LUA_TNIL {
+                if ffi::lua_getfield(state, ffi::LUA_REGISTRYINDEX, ffi::LUA_LOADED_TABLE)
+                    != ffi::LUA_TNIL
+                {
                     ffi::luaL_getsubtable(state, -1, ffi::LUA_LOADLIBNAME);
                     ffi::luaL_getsubtable(state, -1, cstr!("preload"));
                     ffi::lua_rotate(state, 1, 1);
@@ -720,7 +734,8 @@ impl Lua {
             }
             let result = callback_error_ext(state, ptr::null_mut(), false, move |extra, _| {
                 let interrupt_cb = (*extra).interrupt_callback.clone();
-                let interrupt_cb = mlua_expect!(interrupt_cb, "no interrupt callback set in interrupt_proc");
+                let interrupt_cb =
+                    mlua_expect!(interrupt_cb, "no interrupt callback set in interrupt_proc");
                 if XRc::strong_count(&interrupt_cb) > 2 {
                     return Ok(VmState::Continue); // Don't allow recursion
                 }
@@ -790,7 +805,10 @@ impl Lua {
     }
 
     #[cfg(feature = "luau")]
-    unsafe extern "C-unwind" fn userthread_proc(parent: *mut ffi::lua_State, child: *mut ffi::lua_State) {
+    unsafe extern "C-unwind" fn userthread_proc(
+        parent: *mut ffi::lua_State,
+        child: *mut ffi::lua_State,
+    ) {
         let extra = ExtraData::get(child);
         if !parent.is_null() {
             // Thread is created
@@ -861,7 +879,8 @@ impl Lua {
             let extra = ud as *mut ExtraData;
             callback_error_ext((*extra).raw_lua().state(), extra, false, |extra, _| {
                 let warn_callback = (*extra).warn_callback.clone();
-                let warn_callback = mlua_expect!(warn_callback, "no warning callback set in warn_proc");
+                let warn_callback =
+                    mlua_expect!(warn_callback, "no warning callback set in warn_proc");
                 if XRc::strong_count(&warn_callback) > 2 {
                     return Ok(());
                 }
@@ -1133,12 +1152,18 @@ impl Lua {
         #[cfg(feature = "lua55")]
         let prev_mode = unsafe {
             ffi::lua_gc(state, ffi::LUA_GCPARAM, ffi::LUA_GCPPAUSE, pause);
-            ffi::lua_gc(state, ffi::LUA_GCPARAM, ffi::LUA_GCPSTEPMUL, step_multiplier);
+            ffi::lua_gc(
+                state,
+                ffi::LUA_GCPARAM,
+                ffi::LUA_GCPSTEPMUL,
+                step_multiplier,
+            );
             ffi::lua_gc(state, ffi::LUA_GCPARAM, ffi::LUA_GCPSTEPSIZE, step_size);
             ffi::lua_gc(state, ffi::LUA_GCINC)
         };
         #[cfg(feature = "lua54")]
-        let prev_mode = unsafe { ffi::lua_gc(state, ffi::LUA_GCINC, pause, step_multiplier, step_size) };
+        let prev_mode =
+            unsafe { ffi::lua_gc(state, ffi::LUA_GCINC, pause, step_multiplier, step_size) };
         #[cfg(any(feature = "lua55", feature = "lua54"))]
         match prev_mode {
             ffi::LUA_GCINC => GCMode::Incremental,
@@ -1160,13 +1185,24 @@ impl Lua {
         let state = lua.main_state();
         #[cfg(feature = "lua55")]
         let prev_mode = unsafe {
-            ffi::lua_gc(state, ffi::LUA_GCPARAM, ffi::LUA_GCPMINORMUL, minor_multiplier);
-            ffi::lua_gc(state, ffi::LUA_GCPARAM, ffi::LUA_GCPMINORMAJOR, major_multiplier);
+            ffi::lua_gc(
+                state,
+                ffi::LUA_GCPARAM,
+                ffi::LUA_GCPMINORMUL,
+                minor_multiplier,
+            );
+            ffi::lua_gc(
+                state,
+                ffi::LUA_GCPARAM,
+                ffi::LUA_GCPMINORMAJOR,
+                major_multiplier,
+            );
             // TODO: LUA_GCPMAJORMINOR
             ffi::lua_gc(state, ffi::LUA_GCGEN)
         };
         #[cfg(not(feature = "lua55"))]
-        let prev_mode = unsafe { ffi::lua_gc(state, ffi::LUA_GCGEN, minor_multiplier, major_multiplier) };
+        let prev_mode =
+            unsafe { ffi::lua_gc(state, ffi::LUA_GCGEN, minor_multiplier, major_multiplier) };
         match prev_mode {
             ffi::LUA_GCGEN => GCMode::Generational,
             ffi::LUA_GCINC => GCMode::Incremental,
@@ -1376,6 +1412,67 @@ impl Lua {
         }))
     }
 
+    /// Creates a synchronous projector borrowing a host error rooted on the Lua stack.
+    ///
+    /// Accepts `(value, for_run_handler: bool)`. Values other than wrapped host
+    /// errors pass through unchanged. Returning `None` retains the original Lua
+    /// value and its identity; no `Value::Error` or cloned error is materialized.
+    /// Rust panics use the existing callback protection and are never projected.
+    pub fn create_borrowed_error_projector<F>(&self, projector: F) -> Result<Function>
+    where
+        F: Fn(&Lua, &Error, bool) -> Result<Option<Value>> + MaybeSend + 'static,
+    {
+        use crate::util::{get_internal_userdata, WrappedFailure};
+
+        self.lock()
+            .create_callback(Box::new(move |rawlua, nargs| unsafe {
+                let state = rawlua.state();
+                // The original callback guard may reserve its failure userdata at
+                // stack index 1. Arguments occupy the last `nargs` slots in both
+                // its fresh and pooled paths, exactly as FromLuaMulti does.
+                if nargs != 2 {
+                    return Err(Error::runtime("error projector expects two arguments"));
+                }
+                let first = ffi::lua_gettop(state) - nargs + 1;
+                if ffi::lua_type(state, first + 1) != ffi::LUA_TBOOLEAN {
+                    return Err(Error::runtime("error projector mode must be a boolean"));
+                }
+                let for_run_handler = ffi::lua_toboolean(state, first + 1) != 0;
+                if ffi::lua_type(state, first) == ffi::LUA_TUSERDATA {
+                    let failure =
+                        get_internal_userdata::<WrappedFailure>(state, first, ptr::null());
+                    match failure.as_ref() {
+                        Some(WrappedFailure::Error(error)) => {
+                            // The original argument remains a GC root throughout
+                            // this synchronous borrow, including reentrant Lua API
+                            // calls. No borrowed pointer escapes to a Value/Future.
+                            if let Some(value) = projector(rawlua.lua(), error, for_run_handler)? {
+                                return value.push_into_stack_multi(rawlua);
+                            }
+                        }
+                        Some(WrappedFailure::Panic(_)) => {
+                            // Only the panic branch mutates its payload; error
+                            // borrows remain shared across reentrant callbacks.
+                            let Some(WrappedFailure::Panic(panic)) = failure.as_mut() else {
+                                unreachable!()
+                            };
+                            if let Some(payload) = panic.take() {
+                                std::panic::resume_unwind(payload);
+                            }
+                            // Preserve stack_value's already-resumed panic rule.
+                            ffi::lua_pushnil(state);
+                            return Ok(1);
+                        }
+                        _ => {}
+                    }
+                }
+                // A POD-only stack copy: it cannot allocate a Rust error tree or
+                // detach the value from its original wrapped-error lifetime.
+                ffi::lua_pushvalue(state, first);
+                Ok(1)
+            }))
+    }
+
     /// Wraps a Rust mutable closure, creating a callable Lua function handle to it.
     ///
     /// This is a version of [`Lua::create_function`] that accepts a `FnMut` argument.
@@ -1387,8 +1484,20 @@ impl Lua {
     {
         let func = RefCell::new(func);
         self.create_function(move |lua, args| {
-            (*func.try_borrow_mut().map_err(|_| Error::RecursiveMutCallback)?)(lua, args)
+            (*func
+                .try_borrow_mut()
+                .map_err(|_| Error::RecursiveMutCallback)?)(lua, args)
         })
+    }
+
+    /// Creates a scoped protected call accepting `(target, handler, ...args)`.
+    ///
+    /// Returns `(status, value)`, retaining the actual Lua error status and the
+    /// original message-handler result. One target result is retained. Genuine
+    /// Rust panics bypass the handler and resume during normal Value decoding.
+    /// The function is intended to remain private to a host's run boundary.
+    pub fn create_protected_call(&self) -> Result<Function> {
+        unsafe { self.create_c_function(crate::util::run_protected_call) }
     }
 
     /// Wraps a C function, creating a callable Lua function handle to it.
@@ -1540,7 +1649,10 @@ impl Lua {
     /// Registers a custom Rust type in Lua to use in userdata objects.
     ///
     /// This methods provides a way to add fields or methods to userdata objects of a type `T`.
-    pub fn register_userdata_type<T: 'static>(&self, f: impl FnOnce(&mut UserDataRegistry<T>)) -> Result<()> {
+    pub fn register_userdata_type<T: 'static>(
+        &self,
+        f: impl FnOnce(&mut UserDataRegistry<T>),
+    ) -> Result<()> {
         let type_id = TypeId::of::<T>();
         let mut registry = UserDataRegistry::new(self);
         f(&mut registry);
@@ -1663,7 +1775,12 @@ impl Lua {
         unsafe {
             let _sg = StackGuard::new(state);
             assert_stack(state, 1);
-            #[cfg(any(feature = "lua55", feature = "lua54", feature = "lua53", feature = "lua52"))]
+            #[cfg(any(
+                feature = "lua55",
+                feature = "lua54",
+                feature = "lua53",
+                feature = "lua52"
+            ))]
             ffi::lua_rawgeti(state, ffi::LUA_REGISTRYINDEX, ffi::LUA_RIDX_GLOBALS);
             #[cfg(any(feature = "lua51", feature = "luajit", feature = "luau"))]
             ffi::lua_pushvalue(state, ffi::LUA_GLOBALSINDEX);
@@ -1687,7 +1804,9 @@ impl Lua {
         unsafe {
             #[cfg(feature = "luau")]
             if (*lua.extra.get()).sandboxed {
-                return Err(Error::runtime("cannot change globals in a sandboxed Lua state"));
+                return Err(Error::runtime(
+                    "cannot change globals in a sandboxed Lua state",
+                ));
             }
 
             let _sg = StackGuard::new(state);
@@ -1695,7 +1814,12 @@ impl Lua {
 
             lua.push_ref(&globals.0);
 
-            #[cfg(any(feature = "lua55", feature = "lua54", feature = "lua53", feature = "lua52"))]
+            #[cfg(any(
+                feature = "lua55",
+                feature = "lua54",
+                feature = "lua53",
+                feature = "lua52"
+            ))]
             ffi::lua_rawseti(state, ffi::LUA_REGISTRYINDEX, ffi::LUA_RIDX_GLOBALS);
             #[cfg(any(feature = "lua51", feature = "luajit", feature = "luau"))]
             ffi::lua_replace(state, ffi::LUA_GLOBALSINDEX);
@@ -2117,7 +2241,9 @@ impl Lua {
 
     /// Tries to get a reference to an application data object stored by [`Lua::set_app_data`] of
     /// type `T`.
-    pub fn try_app_data_ref<T: 'static>(&self) -> StdResult<Option<AppDataRef<'_, T>>, BorrowError> {
+    pub fn try_app_data_ref<T: 'static>(
+        &self,
+    ) -> StdResult<Option<AppDataRef<'_, T>>, BorrowError> {
         let guard = self.lock_arc();
         let extra = unsafe { &*guard.extra.get() };
         extra.app_data.try_borrow(Some(guard))
@@ -2138,7 +2264,9 @@ impl Lua {
 
     /// Tries to get a mutable reference to an application data object stored by
     /// [`Lua::set_app_data`] of type `T`.
-    pub fn try_app_data_mut<T: 'static>(&self) -> StdResult<Option<AppDataRefMut<'_, T>>, BorrowMutError> {
+    pub fn try_app_data_mut<T: 'static>(
+        &self,
+    ) -> StdResult<Option<AppDataRefMut<'_, T>>, BorrowMutError> {
         let guard = self.lock_arc();
         let extra = unsafe { &*guard.extra.get() };
         extra.app_data.try_borrow_mut(Some(guard))
@@ -2295,7 +2423,12 @@ impl Lua {
             })?,
         )?;
 
-        #[cfg(any(feature = "lua55", feature = "lua54", feature = "lua53", feature = "lua52"))]
+        #[cfg(any(
+            feature = "lua55",
+            feature = "lua54",
+            feature = "lua53",
+            feature = "lua52"
+        ))]
         let searchers: Table = package.get("searchers")?;
         #[cfg(any(feature = "lua51", feature = "luajit"))]
         let searchers: Table = package.get("loaders")?;

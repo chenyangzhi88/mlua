@@ -1,3 +1,6 @@
+mod protected_call;
+pub(crate) use protected_call::call as run_protected_call;
+
 use std::borrow::Cow;
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int, c_void};
@@ -28,7 +31,10 @@ pub(crate) unsafe fn assert_stack(state: *mut ffi::lua_State, amount: c_int) {
     // TODO: This should only be triggered when there is a logic error in `mlua`. In the future,
     // when there is a way to be confident about stack safety and test it, this could be enabled
     // only when `cfg!(debug_assertions)` is true.
-    mlua_assert!(ffi::lua_checkstack(state, amount) != 0, "out of stack space");
+    mlua_assert!(
+        ffi::lua_checkstack(state, amount) != 0,
+        "out of stack space"
+    );
 }
 
 // Checks that Lua has enough free stack space and returns `Error::StackError` on failure.
@@ -87,7 +93,11 @@ impl Drop for StackGuard {
 
 // Uses 3 (or 1 if unprotected) stack spaces, does not call checkstack.
 #[inline(always)]
-pub(crate) unsafe fn push_string(state: *mut ffi::lua_State, s: &[u8], protect: bool) -> Result<()> {
+pub(crate) unsafe fn push_string(
+    state: *mut ffi::lua_State,
+    s: &[u8],
+    protect: bool,
+) -> Result<()> {
     // Always use protected mode if the string is too long
     if protect || s.len() >= const { 1 << 30 } {
         protect_lua!(state, 0, 1, |state| {
@@ -111,7 +121,12 @@ pub(crate) unsafe fn push_external_string(
     let s_ptr = bytes.as_ptr() as *const c_char;
     let bytes_ud = Box::into_raw(Box::new(bytes));
 
-    unsafe extern "C" fn dealloc(ud: *mut c_void, _: *mut c_void, _: usize, _: usize) -> *mut c_void {
+    unsafe extern "C" fn dealloc(
+        ud: *mut c_void,
+        _: *mut c_void,
+        _: usize,
+        _: usize,
+    ) -> *mut c_void {
         drop(Box::from_raw(ud as *mut Vec<u8>));
         ptr::null_mut()
     }
@@ -134,7 +149,11 @@ pub(crate) unsafe fn push_external_string(
 // Uses 3 stack spaces (when protect), does not call checkstack.
 #[cfg(feature = "luau")]
 #[inline(always)]
-pub(crate) unsafe fn push_buffer(state: *mut ffi::lua_State, size: usize, protect: bool) -> Result<*mut u8> {
+pub(crate) unsafe fn push_buffer(
+    state: *mut ffi::lua_State,
+    size: usize,
+    protect: bool,
+) -> Result<*mut u8> {
     let data = if protect || size > const { 1024 * 1024 * 1024 } {
         protect_lua!(state, 0, 1, |state| ffi::lua_newbuffer(state, size))?
     } else {
@@ -162,7 +181,11 @@ pub(crate) unsafe fn push_table(
 }
 
 // Uses 4 stack spaces, does not call checkstack.
-pub(crate) unsafe fn rawget_field(state: *mut ffi::lua_State, table: c_int, field: &str) -> Result<c_int> {
+pub(crate) unsafe fn rawget_field(
+    state: *mut ffi::lua_State,
+    table: c_int,
+    field: &str,
+) -> Result<c_int> {
     ffi::lua_pushvalue(state, table);
     protect_lua!(state, 1, 1, |state| {
         ffi::lua_pushlstring(state, field.as_ptr() as *const c_char, field.len());
@@ -171,7 +194,11 @@ pub(crate) unsafe fn rawget_field(state: *mut ffi::lua_State, table: c_int, fiel
 }
 
 // Uses 4 stack spaces, does not call checkstack.
-pub(crate) unsafe fn rawset_field(state: *mut ffi::lua_State, table: c_int, field: &str) -> Result<()> {
+pub(crate) unsafe fn rawset_field(
+    state: *mut ffi::lua_State,
+    table: c_int,
+    field: &str,
+) -> Result<()> {
     ffi::lua_pushvalue(state, table);
     protect_lua!(state, 2, 0, |state| {
         ffi::lua_pushlstring(state, field.as_ptr() as *const c_char, field.len());
@@ -207,20 +234,6 @@ pub(crate) unsafe extern "C-unwind" fn safe_pcall(state: *mut ffi::lua_State) ->
 
 // A variant of `xpcall` that does not allow Lua to catch Rust panics from `callback_error`.
 pub(crate) unsafe extern "C-unwind" fn safe_xpcall(state: *mut ffi::lua_State) -> c_int {
-    unsafe extern "C-unwind" fn xpcall_msgh(state: *mut ffi::lua_State) -> c_int {
-        ffi::luaL_checkstack(state, 2, ptr::null());
-
-        let wf_ud = get_internal_userdata::<WrappedFailure>(state, -1, ptr::null());
-        if let Some(WrappedFailure::Panic(_)) = wf_ud.as_ref() {
-            1
-        } else {
-            ffi::lua_pushvalue(state, ffi::lua_upvalueindex(1));
-            ffi::lua_insert(state, 1);
-            ffi::lua_call(state, ffi::lua_gettop(state) - 1, ffi::LUA_MULTRET);
-            ffi::lua_gettop(state)
-        }
-    }
-
     ffi::luaL_checkstack(state, 2, ptr::null());
 
     let top = ffi::lua_gettop(state);
@@ -230,7 +243,7 @@ pub(crate) unsafe extern "C-unwind" fn safe_xpcall(state: *mut ffi::lua_State) -
     }
 
     ffi::lua_pushvalue(state, 2);
-    ffi::lua_pushcclosure(state, xpcall_msgh, 1);
+    ffi::lua_pushcclosure(state, protected_call::xpcall_message_handler, 1);
     ffi::lua_copy(state, 1, 2);
     ffi::lua_replace(state, 1);
 
@@ -252,7 +265,12 @@ pub(crate) unsafe extern "C-unwind" fn safe_xpcall(state: *mut ffi::lua_State) -
 // Returns Lua main thread for Lua >= 5.2 or checks that the passed thread is main for Lua 5.1.
 // Does not call lua_checkstack, uses 1 stack space.
 pub(crate) unsafe fn get_main_state(state: *mut ffi::lua_State) -> Option<*mut ffi::lua_State> {
-    #[cfg(any(feature = "lua55", feature = "lua54", feature = "lua53", feature = "lua52"))]
+    #[cfg(any(
+        feature = "lua55",
+        feature = "lua54",
+        feature = "lua53",
+        feature = "lua52"
+    ))]
     {
         ffi::lua_rawgeti(state, ffi::LUA_REGISTRYINDEX, ffi::LUA_RIDX_MAINTHREAD);
         let main_state = ffi::lua_tothread(state, -1);
@@ -364,3 +382,6 @@ mod path;
 mod short_names;
 mod types;
 mod userdata;
+
+#[cfg(test)]
+mod tests;
