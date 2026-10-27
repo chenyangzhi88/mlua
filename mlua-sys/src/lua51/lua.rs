@@ -182,6 +182,12 @@ unsafe extern "C-unwind" {
     pub fn lua_setmetatable(L: *mut lua_State, objindex: c_int) -> c_int;
     pub fn lua_setfenv(L: *mut lua_State, idx: c_int) -> c_int;
 
+    // Redis Table readonly extension in the controlled vendored Lua51 backend.
+    #[cfg(feature = "vendored")]
+    pub fn lua_enablereadonlytable(L: *mut lua_State, idx: c_int, enabled: c_int);
+    #[cfg(feature = "vendored")]
+    pub fn lua_isreadonlytable(L: *mut lua_State, idx: c_int) -> c_int;
+
     //
     // 'load' and 'call' functions (load and run Lua code)
     //

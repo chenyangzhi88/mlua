@@ -275,3 +275,6 @@ pub(crate) mod private {
     impl Sealed for Table {}
     impl Sealed for AnyUserData {}
 }
+
+#[cfg(all(test, feature = "lua51", feature = "vendored"))]
+mod tests;

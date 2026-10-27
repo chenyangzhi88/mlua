@@ -14,7 +14,7 @@ use crate::memory::{MemoryState, ALLOCATOR};
 use crate::state::util::callback_error_ext;
 use crate::stdlib::StdLib;
 use crate::string::String;
-use crate::table::Table;
+use crate::table::{Table, raw_set_key_can_error};
 use crate::thread::Thread;
 use crate::traits::IntoLua;
 use crate::types::{
@@ -620,7 +620,7 @@ impl RawLua {
         for (k, v) in iter {
             self.push(k)?;
             self.push(v)?;
-            if protect {
+            if protect || raw_set_key_can_error(state, -2) {
                 protect_lua!(state, 3, 1, fn(state) ffi::lua_rawset(state, -3))?;
             } else {
                 ffi::lua_rawset(state, -3);

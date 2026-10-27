@@ -9,7 +9,7 @@ use crate::function::Function;
 use crate::state::{LuaGuard, RawLua, WeakLua};
 use crate::traits::{FromLua, FromLuaMulti, IntoLua, IntoLuaMulti, ObjectLike};
 use crate::types::{Integer, ValueRef};
-use crate::util::{assert_stack, check_stack, get_metatable_ptr, StackGuard};
+use crate::util::{StackGuard, assert_stack, check_stack, get_metatable_ptr};
 use crate::value::{Nil, Value};
 
 #[cfg(feature = "async")]
@@ -25,6 +25,15 @@ use {
 /// Handle to an internal Lua table.
 #[derive(Clone, PartialEq)]
 pub struct Table(pub(crate) ValueRef);
+
+// Nil and NaN keys can raise a Lua runtime error even without an allocator
+// limit. Keep those writes inside the existing protected C boundary; select
+// from the converted stack value rather than the Rust key's source type.
+#[inline]
+pub(crate) unsafe fn raw_set_key_can_error(state: *mut ffi::lua_State, index: std::os::raw::c_int) -> bool {
+    let kind = ffi::lua_type(state, index);
+    kind == ffi::LUA_TNIL || (kind == ffi::LUA_TNUMBER && ffi::lua_tonumber(state, index).is_nan())
+}
 
 impl Table {
     /// Sets a key-value pair in the table.
@@ -245,9 +254,6 @@ impl Table {
         let lua = self.0.lua.lock();
         let state = lua.state();
         unsafe {
-            #[cfg(feature = "luau")]
-            self.check_readonly_write(&lua)?;
-
             let _sg = StackGuard::new(state);
             check_stack(state, 5)?;
 
@@ -255,7 +261,10 @@ impl Table {
             key.push_into_stack(&lua)?;
             value.push_into_stack(&lua)?;
 
-            if lua.unlikely_memory_error() {
+            #[cfg(any(feature = "luau", all(feature = "lua51", feature = "vendored")))]
+            self.check_readonly_write(&lua)?;
+
+            if lua.unlikely_memory_error() && !raw_set_key_can_error(state, -2) {
                 ffi::lua_rawset(state, -3);
                 ffi::lua_pop(state, 1);
                 Ok(())
@@ -315,9 +324,6 @@ impl Table {
         let lua = self.0.lua.lock();
         let state = lua.state();
         unsafe {
-            #[cfg(feature = "luau")]
-            self.check_readonly_write(&lua)?;
-
             let _sg = StackGuard::new(state);
             check_stack(state, 4)?;
 
@@ -328,6 +334,9 @@ impl Table {
                 let len = ffi::lua_rawlen(state, -2) as Integer;
                 ffi::lua_rawseti(state, -2, len + 1);
             }
+
+            #[cfg(any(feature = "luau", all(feature = "lua51", feature = "vendored")))]
+            self.check_readonly_write(&lua)?;
 
             if lua.unlikely_memory_error() {
                 callback(state);
@@ -343,7 +352,7 @@ impl Table {
         let lua = self.0.lua.lock();
         let state = lua.state();
         unsafe {
-            #[cfg(feature = "luau")]
+            #[cfg(any(feature = "luau", all(feature = "lua51", feature = "vendored")))]
             self.check_readonly_write(&lua)?;
 
             let _sg = StackGuard::new(state);
@@ -402,10 +411,11 @@ impl Table {
     /// This method is useful to clear the table while keeping its capacity.
     pub fn clear(&self) -> Result<()> {
         let lua = self.0.lua.lock();
+        #[cfg(any(feature = "luau", all(feature = "lua51", feature = "vendored")))]
+        self.check_readonly_write(&lua)?;
         unsafe {
             #[cfg(feature = "luau")]
             {
-                self.check_readonly_write(&lua)?;
                 ffi::lua_cleartable(lua.ref_thread(), self.0.index);
             }
 
@@ -495,12 +505,9 @@ impl Table {
     /// If `metatable` is `None`, the metatable is removed (if no metatable is set, this does
     /// nothing).
     pub fn set_metatable(&self, metatable: Option<Table>) -> Result<()> {
-        #[cfg(feature = "luau")]
-        if self.is_readonly() {
-            return Err(Error::runtime("attempt to modify a readonly table"));
-        }
-
         let lua = self.0.lua.lock();
+        #[cfg(any(feature = "luau", all(feature = "lua51", feature = "vendored")))]
+        self.check_readonly_write(&lua)?;
         let ref_thread = lua.ref_thread();
         unsafe {
             if let Some(metatable) = &metatable {
@@ -522,27 +529,49 @@ impl Table {
     }
 
     /// Sets `readonly` attribute on the table.
-    #[cfg(any(feature = "luau", doc))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+    #[cfg(any(feature = "luau", all(feature = "lua51", feature = "vendored"), doc))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "luau", all(feature = "lua51", feature = "vendored"))))
+    )]
     pub fn set_readonly(&self, enabled: bool) {
         let lua = self.0.lua.lock();
         let ref_thread = lua.ref_thread();
         unsafe {
-            ffi::lua_setreadonly(ref_thread, self.0.index, enabled as _);
-            if !enabled {
-                // Reset "safeenv" flag
-                ffi::lua_setsafeenv(ref_thread, self.0.index, 0);
+            #[cfg(all(feature = "lua51", feature = "vendored"))]
+            ffi::lua_enablereadonlytable(ref_thread, self.0.index, enabled as _);
+            #[cfg(feature = "luau")]
+            {
+                ffi::lua_setreadonly(ref_thread, self.0.index, enabled as _);
+                if !enabled {
+                    // Reset "safeenv" flag
+                    ffi::lua_setsafeenv(ref_thread, self.0.index, 0);
+                }
             }
         }
+        #[cfg(not(any(feature = "luau", all(feature = "lua51", feature = "vendored"))))]
+        unreachable!("readonly requires Luau or the controlled vendored Lua51 backend");
     }
 
     /// Returns `readonly` attribute of the table.
-    #[cfg(any(feature = "luau", doc))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+    #[cfg(any(feature = "luau", all(feature = "lua51", feature = "vendored"), doc))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "luau", all(feature = "lua51", feature = "vendored"))))
+    )]
     pub fn is_readonly(&self) -> bool {
         let lua = self.0.lua.lock();
         let ref_thread = lua.ref_thread();
-        unsafe { ffi::lua_getreadonly(ref_thread, self.0.index) != 0 }
+        #[cfg(all(feature = "lua51", feature = "vendored"))]
+        unsafe {
+            return ffi::lua_isreadonlytable(ref_thread, self.0.index) != 0;
+        }
+        #[cfg(feature = "luau")]
+        unsafe {
+            return ffi::lua_getreadonly(ref_thread, self.0.index) != 0;
+        }
+        #[cfg(not(any(feature = "luau", all(feature = "lua51", feature = "vendored"))))]
+        unreachable!("readonly requires Luau or the controlled vendored Lua51 backend");
     }
 
     /// Controls `safeenv` attribute on the table.
@@ -715,9 +744,6 @@ impl Table {
         let lua = self.0.lua.lock();
         let state = lua.state();
         unsafe {
-            #[cfg(feature = "luau")]
-            self.check_readonly_write(&lua)?;
-
             let _sg = StackGuard::new(state);
             check_stack(state, 5)?;
 
@@ -725,6 +751,9 @@ impl Table {
             value.push_into_stack(&lua)?;
 
             let idx = idx.try_into().unwrap();
+            #[cfg(any(feature = "luau", all(feature = "lua51", feature = "vendored")))]
+            self.check_readonly_write(&lua)?;
+
             if lua.unlikely_memory_error() {
                 ffi::lua_rawseti(state, -2, idx);
             } else {
@@ -816,11 +845,19 @@ impl Table {
         None
     }
 
-    #[cfg(feature = "luau")]
+    #[cfg(any(feature = "luau", all(feature = "lua51", feature = "vendored")))]
     #[inline(always)]
     fn check_readonly_write(&self, lua: &RawLua) -> Result<()> {
-        if unsafe { ffi::lua_getreadonly(lua.ref_thread(), self.0.index) != 0 } {
-            return Err(Error::runtime("attempt to modify a readonly table"));
+        #[cfg(feature = "luau")]
+        let readonly = unsafe { ffi::lua_getreadonly(lua.ref_thread(), self.0.index) != 0 };
+        #[cfg(all(feature = "lua51", feature = "vendored"))]
+        let readonly = unsafe { ffi::lua_isreadonlytable(lua.ref_thread(), self.0.index) != 0 };
+        if readonly {
+            return Err(Error::runtime(if cfg!(feature = "luau") {
+                "attempt to modify a readonly table"
+            } else {
+                "Attempt to modify a readonly table"
+            }));
         }
         Ok(())
     }
@@ -1070,7 +1107,7 @@ impl Serialize for SerializableTable<'_> {
     where
         S: Serializer,
     {
-        use crate::serde::de::{check_value_for_skip, MapPairs, RecursionGuard};
+        use crate::serde::de::{MapPairs, RecursionGuard, check_value_for_skip};
         use crate::value::SerializableValue;
 
         let convert_result = |res: Result<()>, serialize_err: Option<S::Error>| match res {
@@ -1176,7 +1213,8 @@ where
 
                 // It must be safe to call `lua_next` unprotected as deleting a key from a table is
                 // a permitted operation.
-                // It fails only if the key is not found (never existed) which seems impossible scenario.
+                // It fails only if the key is not found (never existed) which seems impossible
+                // scenario.
                 if ffi::lua_next(state, -2) != 0 {
                     let key = lua.stack_value(-2, None);
                     Ok(Some((

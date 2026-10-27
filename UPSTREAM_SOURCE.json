@@ -183,7 +183,11 @@
     "src/state.rs",
     "src/state/raw.rs",
     "src/util/error.rs",
-    "src/util/mod.rs"
+    "src/util/mod.rs",
+    "Cargo.toml",
+    "src/table.rs",
+    "mlua-sys/build/find_vendored.rs",
+    "mlua-sys/src/lua51/lua.rs"
   ],
   "features_unchanged": [
     "async",
@@ -196,10 +200,75 @@
   "fork_repository": "git@github.com:chenyangzhi88/mlua.git",
   "maintenance_branch": "uni5db-0.11",
   "added_production_files": [
-    "src/util/protected_call.rs"
+    "src/util/protected_call.rs",
+    "mlua-sys/vendor/lua51/lapi.c",
+    "mlua-sys/vendor/lua51/lapi.h",
+    "mlua-sys/vendor/lua51/lauxlib.c",
+    "mlua-sys/vendor/lua51/lauxlib.h",
+    "mlua-sys/vendor/lua51/lbaselib.c",
+    "mlua-sys/vendor/lua51/lcode.c",
+    "mlua-sys/vendor/lua51/lcode.h",
+    "mlua-sys/vendor/lua51/ldblib.c",
+    "mlua-sys/vendor/lua51/ldebug.c",
+    "mlua-sys/vendor/lua51/ldebug.h",
+    "mlua-sys/vendor/lua51/ldo.c",
+    "mlua-sys/vendor/lua51/ldo.h",
+    "mlua-sys/vendor/lua51/ldump.c",
+    "mlua-sys/vendor/lua51/lfunc.c",
+    "mlua-sys/vendor/lua51/lfunc.h",
+    "mlua-sys/vendor/lua51/lgc.c",
+    "mlua-sys/vendor/lua51/lgc.h",
+    "mlua-sys/vendor/lua51/linit.c",
+    "mlua-sys/vendor/lua51/liolib.c",
+    "mlua-sys/vendor/lua51/llex.c",
+    "mlua-sys/vendor/lua51/llex.h",
+    "mlua-sys/vendor/lua51/llimits.h",
+    "mlua-sys/vendor/lua51/lmathlib.c",
+    "mlua-sys/vendor/lua51/lmem.c",
+    "mlua-sys/vendor/lua51/lmem.h",
+    "mlua-sys/vendor/lua51/loadlib.c",
+    "mlua-sys/vendor/lua51/lobject.c",
+    "mlua-sys/vendor/lua51/lobject.h",
+    "mlua-sys/vendor/lua51/lopcodes.c",
+    "mlua-sys/vendor/lua51/lopcodes.h",
+    "mlua-sys/vendor/lua51/loslib.c",
+    "mlua-sys/vendor/lua51/lparser.c",
+    "mlua-sys/vendor/lua51/lparser.h",
+    "mlua-sys/vendor/lua51/lstate.c",
+    "mlua-sys/vendor/lua51/lstate.h",
+    "mlua-sys/vendor/lua51/lstring.c",
+    "mlua-sys/vendor/lua51/lstring.h",
+    "mlua-sys/vendor/lua51/lstrlib.c",
+    "mlua-sys/vendor/lua51/ltable.c",
+    "mlua-sys/vendor/lua51/ltable.h",
+    "mlua-sys/vendor/lua51/ltablib.c",
+    "mlua-sys/vendor/lua51/ltm.c",
+    "mlua-sys/vendor/lua51/ltm.h",
+    "mlua-sys/vendor/lua51/lua.h",
+    "mlua-sys/vendor/lua51/luaconf.h",
+    "mlua-sys/vendor/lua51/lualib.h",
+    "mlua-sys/vendor/lua51/lundump.c",
+    "mlua-sys/vendor/lua51/lundump.h",
+    "mlua-sys/vendor/lua51/lvm.c",
+    "mlua-sys/vendor/lua51/lvm.h",
+    "mlua-sys/vendor/lua51/lzio.c",
+    "mlua-sys/vendor/lua51/lzio.h",
+    "mlua-sys/vendor/lua51.sources.json"
   ],
   "added_unit_test_files": [
     "src/util/tests/mod.rs",
-    "src/util/tests/protected_call.rs"
-  ]
+    "src/util/tests/protected_call.rs",
+    "src/tests/mod.rs",
+    "src/tests/table.rs"
+  ],
+  "mlua_sys_source": {
+    "version": "0.10.0",
+    "url": "https://static.crates.io/crates/mlua-sys/mlua-sys-0.10.0.crate",
+    "package_checksum": "0f1c3a7fc7580227ece249fd90aa2fa3b39eb2b49d3aec5e103b3e85f2c3dfc8",
+    "original_modified_file_sha256": {
+      "build/find_vendored.rs": "210084c5e81f68d855afba1af8af567727eb88ced74bcfbd7bc8751478d9b3bf",
+      "src/lua51/lua.rs": "b7c95e816e70a1e695942c0d02bc9c97e6a9a9aa47983e45c7ed9f293f42a941"
+    },
+    "lua51_product_sources": "mlua-sys/vendor/lua51.sources.json"
+  }
 }

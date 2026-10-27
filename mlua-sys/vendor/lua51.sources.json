@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "base": {
+    "name": "lua-src",
+    "version": "550.0.0",
+    "url": "https://static.crates.io/crates/lua-src/lua-src-550.0.0.crate",
+    "sha256": "e836dc8ae16806c9bdcf42003a88da27d163433e3f9684c52f0301258004a4fb",
+    "path": "lua-5.1.5",
+    "lua_release": "5.1.5"
+  },
+  "readonly_reference": {
+    "name": "Redis",
+    "version": "8.4.6",
+    "commit": "3f94c9f84d36da888d6ad0cdbab8962e1f3dbd7c",
+    "url": "https://codeload.github.com/redis/redis/tar.gz/refs/tags/8.4.6",
+    "archive_sha256": "6501c7cecc38073caff96f2170408af3611ed43480162d97904affa7155c1b7b",
+    "path": "deps/lua/src",
+    "files": {
+      "lobject.h": "a66ee0a558b4cb23d9c9035143b098c6fa46570afb807ee6a933314f246c4444",
+      "ltable.c": "9bc25aa5e4f8b437510a44ee63b5bc9e359a8d6fdfc677b8fadc2bb28084b760",
+      "lvm.c": "0c08a5debd90217df50d85dae26fba9c96f9725949696834a048e8af88a8f23f",
+      "lapi.c": "634d878872539a279b8802f6387840a1170c4ac249f2fc447b5c225a4b797fd4",
+      "lua.h": "369ad9d340f09bfcbbbb7a55e0ad79dae754b816ff906d1fa9aaf4acfad3c8e3"
+    }
+  },
+  "patches": [
+    "Redis native Table readonly property, C API and Lua write checks",
+    "Additional OP_SETLIST readonly check; retain existing binary loader and mlua host caches"
+  ],
+  "files": {
+    "lapi.c": {
+      "original_sha256": "6aa0d9fdd88b13fe46568ad6722ecf44164fb84476cfdf6480cf05b5704935f8",
+      "sha256": "c9d5498da98525b365f8e8b3f28812634d99586a1a2b636d637939f11b11f39a"
+    },
+    "lapi.h": {
+      "original_sha256": "4aea4c1b975d43184f4f1fd1a42c79cf11d74d2801315740cec07fe9abebb56d",
+      "sha256": "4aea4c1b975d43184f4f1fd1a42c79cf11d74d2801315740cec07fe9abebb56d"
+    },
+    "lauxlib.c": {
+      "original_sha256": "b564650bf4aca2757b9966311d32c8d5fea8803f6f33d72a856448d3b5d6d992",
+      "sha256": "b564650bf4aca2757b9966311d32c8d5fea8803f6f33d72a856448d3b5d6d992"
+    },
+    "lauxlib.h": {
+      "original_sha256": "c741f9c1587f29fd08a79acbe0c46884768a47f89bee4147669f774c5cf50fc0",
+      "sha256": "c741f9c1587f29fd08a79acbe0c46884768a47f89bee4147669f774c5cf50fc0"
+    },
+    "lbaselib.c": {
+      "original_sha256": "b14c49fae6fa4690662185bf842cb05d87756585d2f5bdd8495251fde83ef331",
+      "sha256": "b14c49fae6fa4690662185bf842cb05d87756585d2f5bdd8495251fde83ef331"
+    },
+    "lcode.c": {
+      "original_sha256": "027030bbef34115588bd4a64cf4c8c18236a56936835475a154277478767bac5",
+      "sha256": "027030bbef34115588bd4a64cf4c8c18236a56936835475a154277478767bac5"
+    },
+    "lcode.h": {
+      "original_sha256": "97d5a37f3b1b19eda1ef39607b3358aa0f7e917568ccd27ed0f14bc6a70d4b17",
+      "sha256": "97d5a37f3b1b19eda1ef39607b3358aa0f7e917568ccd27ed0f14bc6a70d4b17"
+    },
+    "ldblib.c": {
+      "original_sha256": "eb8b056711f037e764f746d989f4e40621d8f9ff45add3336790c389849ed0ab",
+      "sha256": "eb8b056711f037e764f746d989f4e40621d8f9ff45add3336790c389849ed0ab"
+    },
+    "ldebug.c": {
+      "original_sha256": "afa5840195befaec55177273c8168748026b38df3243767fc740cc7ced0c4c8f",
+      "sha256": "afa5840195befaec55177273c8168748026b38df3243767fc740cc7ced0c4c8f"
+    },
+    "ldebug.h": {
+      "original_sha256": "d036f0dbb996bdecd48d505746f72c31b82fb2fc38f111b780568338d4ed9e9c",
+      "sha256": "d036f0dbb996bdecd48d505746f72c31b82fb2fc38f111b780568338d4ed9e9c"
+    },
+    "ldo.c": {
+      "original_sha256": "999a17e96f8b2468d26e4d369316a4018e062d97a4ced0a26cc1a1ebd07b353b",
+      "sha256": "999a17e96f8b2468d26e4d369316a4018e062d97a4ced0a26cc1a1ebd07b353b"
+    },
+    "ldo.h": {
+      "original_sha256": "591ad9a90098d3fbf06839da3de752d2c2585cbf5801dde4cdaffe12b23a182e",
+      "sha256": "591ad9a90098d3fbf06839da3de752d2c2585cbf5801dde4cdaffe12b23a182e"
+    },
+    "ldump.c": {
+      "original_sha256": "30d83d766351bb053b3d20793a6bcd2ef0210e8fad76a7032abbe574bafa0ca3",
+      "sha256": "30d83d766351bb053b3d20793a6bcd2ef0210e8fad76a7032abbe574bafa0ca3"
+    },
+    "lfunc.c": {
+      "original_sha256": "525681d79098958530e5c937f7cbe94a4dafa679746ffdb16258f82b7ece29ce",
+      "sha256": "525681d79098958530e5c937f7cbe94a4dafa679746ffdb16258f82b7ece29ce"
+    },
+    "lfunc.h": {
+      "original_sha256": "3cea0071ffda94eac378adb5f1ecb467ef2ffafff4315459e4ccdf05b5119da4",
+      "sha256": "3cea0071ffda94eac378adb5f1ecb467ef2ffafff4315459e4ccdf05b5119da4"
+    },
+    "lgc.c": {
+      "original_sha256": "35be212ad0e4d89336f50f11cd0e991c04fe59b023ec03a626bf3f98e69fd1dc",
+      "sha256": "35be212ad0e4d89336f50f11cd0e991c04fe59b023ec03a626bf3f98e69fd1dc"
+    },
+    "lgc.h": {
+      "original_sha256": "fbab2b989515377729d4c029dd58b3b6242877a88a7c4cfa703ea0deeb069a1e",
+      "sha256": "fbab2b989515377729d4c029dd58b3b6242877a88a7c4cfa703ea0deeb069a1e"
+    },
+    "linit.c": {
+      "original_sha256": "c0c97c45862f6c978620a9682cd2201f0fc29c2afbcab824ba20d26cc1745e56",
+      "sha256": "c0c97c45862f6c978620a9682cd2201f0fc29c2afbcab824ba20d26cc1745e56"
+    },
+    "liolib.c": {
+      "original_sha256": "58170cb075892c81c2ec63e91d53b4b5c1f5e6cb55cd86a22b8e83c917870293",
+      "sha256": "58170cb075892c81c2ec63e91d53b4b5c1f5e6cb55cd86a22b8e83c917870293"
+    },
+    "llex.c": {
+      "original_sha256": "f1ade23f957e69f164ff28e133b201dff5d81726c390b060110b60907831e79b",
+      "sha256": "f1ade23f957e69f164ff28e133b201dff5d81726c390b060110b60907831e79b"
+    },
+    "llex.h": {
+      "original_sha256": "0f3715d22b025727ef11debd641600a123b81718d195cd8445ac6378814458e6",
+      "sha256": "0f3715d22b025727ef11debd641600a123b81718d195cd8445ac6378814458e6"
+    },
+    "llimits.h": {
+      "original_sha256": "1910669296681d9d2814ca46c325063724bb634c0428dae4e5ff59be54e0b758",
+      "sha256": "1910669296681d9d2814ca46c325063724bb634c0428dae4e5ff59be54e0b758"
+    },
+    "lmathlib.c": {
+      "original_sha256": "e2933a56332d567cdd69f0fe514d638a8f82da6878754ff259e77cf2157263c3",
+      "sha256": "e2933a56332d567cdd69f0fe514d638a8f82da6878754ff259e77cf2157263c3"
+    },
+    "lmem.c": {
+      "original_sha256": "e63c50cb1c75356bd4123c9ca05f77bd0cd99e05c099cf6d1bf472086761e9c5",
+      "sha256": "e63c50cb1c75356bd4123c9ca05f77bd0cd99e05c099cf6d1bf472086761e9c5"
+    },
+    "lmem.h": {
+      "original_sha256": "abd1258418486c69bf5a93ceea3a1b9f8af2c7497a4fa6c27b442ffec2c5bbb1",
+      "sha256": "abd1258418486c69bf5a93ceea3a1b9f8af2c7497a4fa6c27b442ffec2c5bbb1"
+    },
+    "loadlib.c": {
+      "original_sha256": "b01bc465bb2e280fb45d24aea98d5ddd9dfd0999f44422e1151aafa1d7f5385c",
+      "sha256": "b01bc465bb2e280fb45d24aea98d5ddd9dfd0999f44422e1151aafa1d7f5385c"
+    },
+    "lobject.c": {
+      "original_sha256": "d704915c79c721556cc5850d741ed3bef1611221356f0e3a2f0ee5cfd5fd3632",
+      "sha256": "d704915c79c721556cc5850d741ed3bef1611221356f0e3a2f0ee5cfd5fd3632"
+    },
+    "lobject.h": {
+      "original_sha256": "274c18373fbbad71bfebd534cae4b2d2e49934abf6672f44735edc6646fb6a8b",
+      "sha256": "955314bc6778a7e8796b047a721b6c7143431bee732cac9388801f5d1e5b2b87"
+    },
+    "lopcodes.c": {
+      "original_sha256": "63cd74edc75970092a8ce078c4ab970efa1ee18de960d00eb826d49fe98d8a76",
+      "sha256": "63cd74edc75970092a8ce078c4ab970efa1ee18de960d00eb826d49fe98d8a76"
+    },
+    "lopcodes.h": {
+      "original_sha256": "a15fe349da7c1e73b563e8c3249fe7d535eccc844cb30ec80b4e335b0699279b",
+      "sha256": "a15fe349da7c1e73b563e8c3249fe7d535eccc844cb30ec80b4e335b0699279b"
+    },
+    "loslib.c": {
+      "original_sha256": "5a624cc0a3732ff45753b711a5a63ee510e639b5562b3f56d281e4aa004810b6",
+      "sha256": "5a624cc0a3732ff45753b711a5a63ee510e639b5562b3f56d281e4aa004810b6"
+    },
+    "lparser.c": {
+      "original_sha256": "3590f24bab5763af673182e40d33194a7de6f5eabe5432c02a548d44225d2b63",
+      "sha256": "3590f24bab5763af673182e40d33194a7de6f5eabe5432c02a548d44225d2b63"
+    },
+    "lparser.h": {
+      "original_sha256": "84512d6540b83ab599cd8de5a1c8c4deaf71ff353f8e4fbc2e4ca135ba4e9ef0",
+      "sha256": "84512d6540b83ab599cd8de5a1c8c4deaf71ff353f8e4fbc2e4ca135ba4e9ef0"
+    },
+    "lstate.c": {
+      "original_sha256": "c36d6b9354aaa30b5323b4984f3172783f69e0deb3186c2ef6f16a8281c59c29",
+      "sha256": "c36d6b9354aaa30b5323b4984f3172783f69e0deb3186c2ef6f16a8281c59c29"
+    },
+    "lstate.h": {
+      "original_sha256": "dc64ea7ec74d7c1efaeaf6a9e2257f0b7856a5c988747948af2e76cf079d20fe",
+      "sha256": "dc64ea7ec74d7c1efaeaf6a9e2257f0b7856a5c988747948af2e76cf079d20fe"
+    },
+    "lstring.c": {
+      "original_sha256": "aa7e934c435d870b9d937ac2fb03dbfa15d367012d46e7e995a2ad8d440f2f6d",
+      "sha256": "aa7e934c435d870b9d937ac2fb03dbfa15d367012d46e7e995a2ad8d440f2f6d"
+    },
+    "lstring.h": {
+      "original_sha256": "c0e8af4eb33e3357be79f906e7e1191ba53a3a790d36ca15b50471d3a339e1f0",
+      "sha256": "c0e8af4eb33e3357be79f906e7e1191ba53a3a790d36ca15b50471d3a339e1f0"
+    },
+    "lstrlib.c": {
+      "original_sha256": "e8048c79ae34be0fd29aa8db1a341cd600f5e09b9133b5810910e07b855a32d5",
+      "sha256": "e8048c79ae34be0fd29aa8db1a341cd600f5e09b9133b5810910e07b855a32d5"
+    },
+    "ltable.c": {
+      "original_sha256": "3a853ce89bf5e834ec53f2a0dd2386eb8b84accbe5fdc18dabd7515b819f0f7c",
+      "sha256": "563b8d234f61972ec16d2213047cd7742ae189bebd6de31e9bf6c96a1f4f774c"
+    },
+    "ltable.h": {
+      "original_sha256": "219e6ac2bf43aaa93093c6bcd571c012660325e6b87ea3d6c1b40679a0acfd64",
+      "sha256": "219e6ac2bf43aaa93093c6bcd571c012660325e6b87ea3d6c1b40679a0acfd64"
+    },
+    "ltablib.c": {
+      "original_sha256": "e934dc4b2fc117a501c717302a00147f7b44eea978ef87a58a3e40e9bfe45d20",
+      "sha256": "e934dc4b2fc117a501c717302a00147f7b44eea978ef87a58a3e40e9bfe45d20"
+    },
+    "ltm.c": {
+      "original_sha256": "9759ae5d1aa3b11e1c7faa6c0f65e05c7126417f7f8f3f989d82fc170b07f891",
+      "sha256": "9759ae5d1aa3b11e1c7faa6c0f65e05c7126417f7f8f3f989d82fc170b07f891"
+    },
+    "ltm.h": {
+      "original_sha256": "54f4c2fa76b8ed8d48163e31807a19999f5d65b009ae862cb757e0773f2aa485",
+      "sha256": "54f4c2fa76b8ed8d48163e31807a19999f5d65b009ae862cb757e0773f2aa485"
+    },
+    "lua.h": {
+      "original_sha256": "470551c185f058360f8d0f9e5c54a29a3950f78af6a93f3fe9e4039a380c7b87",
+      "sha256": "29ad35e9148ef9e0bdb7f7ec975d4797e80ad790afceecc0edea458d98876566"
+    },
+    "luaconf.h": {
+      "original_sha256": "87a576e3e9ed29e2983ecabcf4c6d9de05fe685971939cab431b12185f72072d",
+      "sha256": "87a576e3e9ed29e2983ecabcf4c6d9de05fe685971939cab431b12185f72072d"
+    },
+    "lualib.h": {
+      "original_sha256": "13f880e9dd997a0f7fd0b17ccd949c98f33e95bd120f084de66084e888217413",
+      "sha256": "13f880e9dd997a0f7fd0b17ccd949c98f33e95bd120f084de66084e888217413"
+    },
+    "lundump.c": {
+      "original_sha256": "55ccb55abde44e94e6c4d0bafc94f5870d2674d1944e9a81f6537d9ac92e8ebc",
+      "sha256": "55ccb55abde44e94e6c4d0bafc94f5870d2674d1944e9a81f6537d9ac92e8ebc"
+    },
+    "lundump.h": {
+      "original_sha256": "9f3a2924d1585620993a70eea6cf3def34acb8322b2d9c3629bcdacc037edc64",
+      "sha256": "9f3a2924d1585620993a70eea6cf3def34acb8322b2d9c3629bcdacc037edc64"
+    },
+    "lvm.c": {
+      "original_sha256": "b560aad0a1b8bfc4e4b732b2393e8f8ecc68b6c772e6d25763d6ef71c38ab709",
+      "sha256": "b7659c257fc7c7f027f3c6dacffc9090c55c0d1425c24d2d999bb0ec4071af79"
+    },
+    "lvm.h": {
+      "original_sha256": "db4b79dc7f4e7656078aa527350fbf14b2fde5d136ccf1cb4f3dc397def5fb67",
+      "sha256": "db4b79dc7f4e7656078aa527350fbf14b2fde5d136ccf1cb4f3dc397def5fb67"
+    },
+    "lzio.c": {
+      "original_sha256": "892bc24d898c19cbedceba419c68f910b99321c0b462be2c2c00b9d763563173",
+      "sha256": "892bc24d898c19cbedceba419c68f910b99321c0b462be2c2c00b9d763563173"
+    },
+    "lzio.h": {
+      "original_sha256": "0ec77d0179bf29c1ccab97028fed761944d5c21c02808e10cd7b5883b58b2ca6",
+      "sha256": "0ec77d0179bf29c1ccab97028fed761944d5c21c02808e10cd7b5883b58b2ca6"
+    }
+  }
+}

@@ -280,6 +280,7 @@ optional = true
 
 [dependencies.ffi]
 version = "0.10.0"
+path = "mlua-sys"
 package = "mlua-sys"
 
 [dependencies.futures-util]
