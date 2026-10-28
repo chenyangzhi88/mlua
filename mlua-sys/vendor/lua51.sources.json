@@ -25,7 +25,8 @@
   },
   "patches": [
     "Redis native Table readonly property, C API and Lua write checks",
-    "Additional OP_SETLIST readonly check; retain existing binary loader and mlua host caches"
+    "Additional OP_SETLIST readonly check; retain existing binary loader and mlua host caches",
+    "Redis unsigned unpack range check before stack growth; avoid increment past INT_MAX in the final loop condition"
   ],
   "files": {
     "lapi.c": {
@@ -46,7 +47,7 @@
     },
     "lbaselib.c": {
       "original_sha256": "b14c49fae6fa4690662185bf842cb05d87756585d2f5bdd8495251fde83ef331",
-      "sha256": "b14c49fae6fa4690662185bf842cb05d87756585d2f5bdd8495251fde83ef331"
+      "sha256": "5b57fdeca20b73f96cd59fbde06bcf8a549ce0802ea1935c9bdc953e15a3aea2"
     },
     "lcode.c": {
       "original_sha256": "027030bbef34115588bd4a64cf4c8c18236a56936835475a154277478767bac5",
@@ -235,6 +236,17 @@
     "lzio.h": {
       "original_sha256": "0ec77d0179bf29c1ccab97028fed761944d5c21c02808e10cd7b5883b58b2ca6",
       "sha256": "0ec77d0179bf29c1ccab97028fed761944d5c21c02808e10cd7b5883b58b2ca6"
+    }
+  },
+  "unpack_reference": {
+    "name": "Redis",
+    "version": "8.4.6",
+    "commit": "3f94c9f84d36da888d6ad0cdbab8962e1f3dbd7c",
+    "url": "https://codeload.github.com/redis/redis/tar.gz/refs/tags/8.4.6",
+    "archive_sha256": "6501c7cecc38073caff96f2170408af3611ed43480162d97904affa7155c1b7b",
+    "path": "deps/lua/src",
+    "files": {
+      "lbaselib.c": "c3dbeb8761004132670b201922626859a1bfeedb454496e4b11dfc3a87fde6ac"
     }
   }
 }

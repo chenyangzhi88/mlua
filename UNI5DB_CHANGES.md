@@ -44,6 +44,15 @@ Valid unlimited-memory keys retain their original fast path. Private regressions
 `src/tests/table.rs`; the preexisting protected-call error and panic tests remain
 in `src/util/tests/`.
 
+## Lua51 unpack range checks
+
+The controlled `lbaselib.c` uses Redis 8.4.6's unsigned range arithmetic before
+checking Lua stack capacity. The original signed subtraction could overflow
+and bypass the guard in optimized builds. The iteration also checks its bound
+before incrementing, including a one-element range at `INT_MAX`. The source
+manifest records the reference and modified file hashes. Redis sandbox tests
+cover overflowing, empty, negative and endpoint ranges.
+
 ## Integrating an upgrade
 
 Configure the official upstream remote in each maintenance checkout:
